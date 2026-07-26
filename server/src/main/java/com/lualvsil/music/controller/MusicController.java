@@ -3,14 +3,17 @@ package com.lualvsil.music;
 import com.lualvsil.music.model.Music;
 import com.lualvsil.music.repository.MusicRepository;
 
-import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.NoSuchElementException;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -24,19 +27,42 @@ public class MusicController {
 	public MusicController(MusicRepository musicRepository) {
 		this.musicRepository = musicRepository;
 	}
-
+	
+	@ResponseStatus(HttpStatus.CREATED)
 	@PostMapping("/musics")
-	public Music musics(@RequestBody Music music) {
-		musicRepository.insert(music);
-		return music;
+	public Music createMusic(@RequestBody Music music) {
+		return musicRepository.insert(music);
 	}
 	
 	@GetMapping("/musics")
-	public Music musicGet(@RequestParam(defaultValue="0") int id) {
+	public List<Music> listMusic() {
+		return musicRepository.list();
+	}
+	
+	@GetMapping("/musics/{id}")
+	public Music getMusic(@PathVariable int id) {
 		return musicRepository.findMusicById(id)
 			.orElseThrow(() -> new NoSuchElementException(
 				"Music with id " + id + " not found!"
 			));
+	}
+
+	@ResponseStatus(HttpStatus.NO_CONTENT)
+	@DeleteMapping("/musics/{id}")
+	public void deleteMusic(@PathVariable int id) {
+		int changes = musicRepository.delete(id);
+		if (changes == 0) {
+			throw new NoSuchElementException("Music with id " + id + " not found!");
+		}
+	}
+
+	@ResponseStatus(HttpStatus.NO_CONTENT)
+	@PutMapping("/musics/{id}")
+	public void updateMusic(@PathVariable int id, @RequestBody Music music) {
+		int changes = musicRepository.put(id, music);
+		if (changes == 0) {
+			throw new NoSuchElementException("Music with id " + id + " not found!");
+		}
 	}
 
 	@ExceptionHandler(NoSuchElementException.class)
