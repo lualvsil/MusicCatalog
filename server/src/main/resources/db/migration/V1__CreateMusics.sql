@@ -1,6 +1,0 @@
-CREATE TABLE music (
-	id BIGSERIAL PRIMARY KEY,
-	title VARCHAR(256) NOT NULL,
-	duration INT NOT NULL,
-	album_id BIGINT NOT NULL
-);
