@@ -1,8 +1,10 @@
 package com.lualvsil.music.model;
 
+import java.util.UUID;
+
 public record Music(
-	Long id,
+	UUID id,
 	String title,
 	Integer duration,
-	Long album_id
+	UUID album_id
 ) {}

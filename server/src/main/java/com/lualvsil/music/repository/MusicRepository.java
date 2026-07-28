@@ -4,6 +4,7 @@ import com.lualvsil.music.model.Music;
 
 import java.util.Optional;
 import java.util.List;
+import java.util.UUID;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -17,12 +18,12 @@ import org.springframework.jdbc.core.RowMapper;
 public class MusicRepository {
 	private final JdbcTemplate jdbcTemplate;
 
-	private RowMapper<Music> musicMapper = (rs, rowNum) ->
+	private final RowMapper<Music> musicMapper = (rs, rowNum) ->
 		new Music(
-			rs.getLong("id"),
+			rs.getObject("id", UUID.class),
 			rs.getString("title"),
 			rs.getInt("duration"),
-			rs.getLong("album_id")
+			rs.getObject("album_id", UUID.class)
 		);
 
 	public MusicRepository(JdbcTemplate jdbcTemplate) {
@@ -30,18 +31,13 @@ public class MusicRepository {
 	}
 
 	public Music insert(Music music) {
-		String sql = "INSERT INTO music (title, duration, album_id) VALUES (?, ?, ?);";
-		KeyHolder holder = new GeneratedKeyHolder();
+		String sql = "INSERT INTO music (title, duration, album_id) VALUES (?, ?, ?) RETURNING id;";
 
-		jdbcTemplate.update(connection -> {
-			PreparedStatement ps = connection.prepareStatement(sql, new String[] {"id"});
-			ps.setString(1, music.title());
-			ps.setInt(2, music.duration());
-			ps.setLong(3, music.album_id());
-			return ps;
-		}, holder);
-
-		Long id = holder.getKey().longValue();
+		UUID id = jdbcTemplate.queryForObject(
+			sql,
+			UUID.class,
+			music.title(), music.duration(), music.album_id()
+		);
 
 		return new Music(
 			id, music.title(), music.duration(), music.album_id()
@@ -55,7 +51,7 @@ public class MusicRepository {
 		);
 	}
 
-	public int delete(int id) {
+	public int delete(UUID id) {
 		int rows = jdbcTemplate.update(
 			"DELETE FROM music WHERE id=?;",
 			id
@@ -63,7 +59,7 @@ public class MusicRepository {
 		return rows;
 	}
 	
-	public int put(int id, Music music) {
+	public int update(UUID id, Music music) {
 		int rows = jdbcTemplate.update(
 			"UPDATE music SET title=?, duration=?, album_id=? WHERE id=?;",
 			music.title(), music.duration(), music.album_id(), id
@@ -71,7 +67,7 @@ public class MusicRepository {
 		return rows;
 	}
 
-	public Optional<Music> findMusicById(int id) {
+	public Optional<Music> findMusicById(UUID id) {
 		try {
 			Music music = jdbcTemplate.queryForObject(
 				"SELECT * FROM music WHERE id=?;",

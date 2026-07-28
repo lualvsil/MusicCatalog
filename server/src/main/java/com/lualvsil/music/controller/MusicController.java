@@ -1,10 +1,11 @@
-package com.lualvsil.music;
+package com.lualvsil.music.controller;
 
 import com.lualvsil.music.model.Music;
 import com.lualvsil.music.repository.MusicRepository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.NoSuchElementException;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -29,18 +30,18 @@ public class MusicController {
 	}
 	
 	@ResponseStatus(HttpStatus.CREATED)
-	@PostMapping("/musics")
+	@PostMapping("/api/musics")
 	public Music createMusic(@RequestBody Music music) {
 		return musicRepository.insert(music);
 	}
 	
-	@GetMapping("/musics")
+	@GetMapping("/api/musics")
 	public List<Music> listMusic() {
 		return musicRepository.list();
 	}
 	
-	@GetMapping("/musics/{id}")
-	public Music getMusic(@PathVariable int id) {
+	@GetMapping("/api/musics/{id}")
+	public Music getMusic(@PathVariable UUID id) {
 		return musicRepository.findMusicById(id)
 			.orElseThrow(() -> new NoSuchElementException(
 				"Music with id " + id + " not found!"
@@ -48,8 +49,8 @@ public class MusicController {
 	}
 
 	@ResponseStatus(HttpStatus.NO_CONTENT)
-	@DeleteMapping("/musics/{id}")
-	public void deleteMusic(@PathVariable int id) {
+	@DeleteMapping("/api/musics/{id}")
+	public void deleteMusic(@PathVariable UUID id) {
 		int changes = musicRepository.delete(id);
 		if (changes == 0) {
 			throw new NoSuchElementException("Music with id " + id + " not found!");
@@ -57,9 +58,9 @@ public class MusicController {
 	}
 
 	@ResponseStatus(HttpStatus.NO_CONTENT)
-	@PutMapping("/musics/{id}")
-	public void updateMusic(@PathVariable int id, @RequestBody Music music) {
-		int changes = musicRepository.put(id, music);
+	@PutMapping("/api/musics/{id}")
+	public void updateMusic(@PathVariable UUID id, @RequestBody Music music) {
+		int changes = musicRepository.update(id, music);
 		if (changes == 0) {
 			throw new NoSuchElementException("Music with id " + id + " not found!");
 		}
